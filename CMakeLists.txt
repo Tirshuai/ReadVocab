@@ -14,39 +14,32 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Sql Network)
 
 # 你的所有源码文件
 add_executable(wordlearner
-    main.cpp
-    mainwindow.cpp
-    mainwindow.h
-    learnnewwidget.cpp
-    fastmodewidget.cpp
-    scenariomodewidget.cpp
-    wordlistwidget.cpp
-    wordrelaterwidget.cpp
-    learnnewwidget.h
-    fastmodewidget.h
-    scenariomodewidget.h
-    wordlistwidget.h
-    wordrelaterwidget.h
-    relatepage.h
-    relatepage.cpp
-    aitextgenerator.cpp
-    aitextgenerator.h
-    reviewwidget.h
-    reviewwidget.cpp
-    fastreviewwidget.h
-    fastreviewwidget.cpp
-    reviewwidget.cpp
-    reviewwidget.h
-    fastreviewwidget.cpp
-    fastreviewwidget.h
-    reviewsituationwidget.h
-    reviewsituationwidget.cpp
-    reviewsituationwidget.cpp
-    reviewsituationwidget.h
-    wordbookwidget.h
-    wordbookwidget.cpp
-    wordbookwidget.cpp
-    wordbookwidget.h
+    src/main.cpp
+    src/mainwindow.cpp
+    src/mainwindow.h
+    src/mainwindow.ui
+    src/learnnewwidget.cpp
+    src/learnnewwidget.h
+    src/fastmodewidget.cpp
+    src/fastmodewidget.h
+    src/scenariomodewidget.cpp
+    src/scenariomodewidget.h
+    src/wordlistwidget.cpp
+    src/wordlistwidget.h
+    src/wordrelaterwidget.cpp
+    src/wordrelaterwidget.h
+    src/relatepage.cpp
+    src/relatepage.h
+    src/aitextgenerator.cpp
+    src/aitextgenerator.h
+    src/reviewwidget.cpp
+    src/reviewwidget.h
+    src/fastreviewwidget.cpp
+    src/fastreviewwidget.h
+    src/reviewsituationwidget.cpp
+    src/reviewsituationwidget.h
+    src/wordbookwidget.cpp
+    src/wordbookwidget.h
 )
 
 # 链接 Qt6 模块
