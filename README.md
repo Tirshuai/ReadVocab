@@ -6,9 +6,7 @@
 | id       | INTEGER | PRIMARY KEY AUTOINCREMENT | 每条释义的唯一编号（自增）           |
 | word     | TEXT    | NOT NULL                  | 英文单词                             |
 | phonetic | TEXT    | 可空                      | 音标                                 |
-| part     | TEXT    | 可空                      | 词性（n /v/adj /adv）                |
-| meaning  | TEXT    | 可空                      | **纯中文释义**（无序号、无多余符号） |
-| example  | TEXT    | 可空                      | **英文短语 / 例句**                  |
+| meaning  | TEXT    | NOT NULL                     | 词性 + **中文释义** |
 
 ├── id        编号 
 
@@ -16,12 +14,7 @@
 
 ├── phonetic  音标 
 
-├── part      词性（n. / v. / adj. / adv. ...） 
-
 ├──meaning   该词性下的释义
-
-└── example
-
 
 
 ## search.py  （搜索）测试database

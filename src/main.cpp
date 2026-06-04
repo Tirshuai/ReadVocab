@@ -3,75 +3,60 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
+#include <QInputDialog>
+#include <QMessageBox>
 
 #include "mainwindow.h"
 #include "fastmodewidget.h"
 #include "scenariomodewidget.h"
+#include "wordbookmanager.h"
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    // ========== 全局唯一：vocabulary.db，连接名 wordconn ==========
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "wordconn");
-    db.setDatabaseName("vocabulary.db");
+    // ========== 词书初始化 ==========
+    QString wordbook = WordbookManager::initWordbook();
 
-    if (!db.open()) {
-        qCritical() << "无法打开 vocabulary.db：" << db.lastError().text();
-        return -1;
+    // 如果没有配置文件（首次启动），弹窗让用户选择词书
+    if (wordbook.isEmpty()) {
+        QStringList items;
+        QStringList tags = WordbookManager::availableWordbooks();
+        for (const QString &tag : tags) {
+            items << WordbookManager::displayName(tag);
+        }
+
+        bool ok = false;
+        QString choice = QInputDialog::getItem(
+            nullptr,
+            QString::fromUtf8("选择词书"),
+            QString::fromUtf8("欢迎使用单词背诵软件！\n请选择您要使用的词书："),
+            items,
+            0,      // 默认选中第一个
+            false,  // 不可编辑
+            &ok
+        );
+
+        if (!ok || choice.isEmpty()) {
+            // 用户取消了选择，默认使用 CET-4
+            wordbook = "cet4";
+        } else {
+            // 找到对应的 tag
+            int idx = items.indexOf(choice);
+            wordbook = (idx >= 0 && idx < tags.size()) ? tags[idx] : "cet4";
+        }
+
+        if (!WordbookManager::switchWordbook(wordbook)) {
+            QMessageBox::critical(nullptr, QString::fromUtf8("错误"),
+                                  QString::fromUtf8("无法打开词书数据库！"));
+            return -1;
+        }
     }
-    qDebug() << "成功连接到 vocabulary.db（全局连接 wordconn）";
 
-    QSqlQuery query(db);
+    qDebug() << "当前词书：" << WordbookManager::currentWordbook()
+             << "(" << WordbookManager::displayName(WordbookManager::currentWordbook()) << ")";
 
-    // ==============================
-    // 单词关联器 必需的两张表（精简稳定版）
-    // ==============================
-    query.exec("CREATE TABLE IF NOT EXISTS relate_group ("
-               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-               "group_name TEXT)");
-
-    query.exec("CREATE TABLE IF NOT EXISTS relate_word ("
-               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-               "group_id INTEGER,"
-               "word_id INTEGER)");
-
-    // ==============================
-    // 单词表（兼容旧表，不破坏数据）
-    // ==============================
-    query.exec("CREATE TABLE IF NOT EXISTS vocabulary ("
-               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-               "word TEXT NOT NULL UNIQUE,"
-               "phonetic TEXT,"
-               "part TEXT,"
-               "meaning TEXT,"
-               "example TEXT)");
-
-    // ==============================
-    // 学习记录表（兼容旧表）
-    // ==============================
-    query.exec("CREATE TABLE IF NOT EXISTS learn_record ("
-               "word_id INTEGER,"
-               "is_learned INTEGER DEFAULT 0,"
-               "study_date TEXT,"
-               "is_correct INTEGER DEFAULT 0,"
-               "starred INTEGER DEFAULT 0,"
-               "PRIMARY KEY(word_id)"
-               ")");
-
-    // ==============================
-    // 复习记录表（你本次需要）
-    // ==============================
-    query.exec("CREATE TABLE IF NOT EXISTS review_history ("
-               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-               "word TEXT NOT NULL,"
-               "is_correct INTEGER NOT NULL,"
-               "review_time DATETIME NOT NULL,"
-               "mode TEXT NOT NULL)");
-
-    // ==============================
-    // 主窗口
-    // ==============================
+    // ========== 主窗口 ==========
     MainWindow w;
     w.show();
 

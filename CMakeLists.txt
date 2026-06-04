@@ -40,6 +40,8 @@ add_executable(wordlearner
     src/reviewsituationwidget.h
     src/wordbookwidget.cpp
     src/wordbookwidget.h
+    src/wordbookmanager.cpp
+    src/wordbookmanager.h
 )
 
 # 链接 Qt6 模块

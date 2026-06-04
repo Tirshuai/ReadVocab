@@ -1,0 +1,5 @@
+D:/35645/Desktop/Coding/oop/ReadVocab/build/CMakeFiles/wordlearner.dir
+D:/35645/Desktop/Coding/oop/ReadVocab/build/CMakeFiles/edit_cache.dir
+D:/35645/Desktop/Coding/oop/ReadVocab/build/CMakeFiles/rebuild_cache.dir
+D:/35645/Desktop/Coding/oop/ReadVocab/build/CMakeFiles/wordlearner_autogen_timestamp_deps.dir
+D:/35645/Desktop/Coding/oop/ReadVocab/build/CMakeFiles/wordlearner_autogen.dir

@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QVBoxLayout>
 #include <QPushButton>
+#include <QLabel>
 #include <QWidget>
 #include "reviewwidget.h"
 #include "fastreviewwidget.h"
@@ -24,11 +25,14 @@ private slots:
     void onResetRecord();
     void onReviewButtonClicked();
     void onWordBookClicked();
+    void onChangeWordbook();
 
 private:
     QWidget *centralWidget;
     QVBoxLayout *mainLayout;
 
+    QLabel *lblWordbook;        // 显示当前词书
+    QPushButton *btnChangeBook; // 更换词书
     QPushButton *btnLearnNew;
     QPushButton *btnReview;
     QPushButton *btnWordList;

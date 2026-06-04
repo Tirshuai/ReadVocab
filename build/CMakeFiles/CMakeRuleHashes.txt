@@ -1,0 +1,3 @@
+# Hashes of file build rules.
+2a7a9482208224b8ae78d7cee2fb4ffc CMakeFiles/wordlearner_autogen
+c75a8345b40ad50a2b9b397aa74590aa wordlearner_autogen/timestamp
