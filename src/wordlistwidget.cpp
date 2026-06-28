@@ -135,19 +135,45 @@ void WordListWidget::loadNextPage()
 
         QWidget *card = new QWidget;
         card->setStyleSheet("background:#111; border-radius:8px; padding:14px;");
+        card->setMinimumWidth(0);
         QHBoxLayout *cardLayout = new QHBoxLayout(card);
+        cardLayout->setSpacing(12);
+        cardLayout->setContentsMargins(12,12,12,12);
+
+        // ========= 左侧文本区：开启自动换行，自适应收缩 =========
         QVBoxLayout *leftLayout = new QVBoxLayout;
+        leftLayout->setSpacing(6);
 
-        leftLayout->addWidget(new QLabel("<b>" + w["word"] + "</b>"));
-        leftLayout->addWidget(new QLabel("词性：" + w["part"]));
-        leftLayout->addWidget(new QLabel("释义：" + w["meaning"]));
-        if (!w["example"].isEmpty())
-            leftLayout->addWidget(new QLabel("例句：" + w["example"]));
+        QLabel *wordLab = new QLabel(QString("<b>%1</b>").arg(w["word"]));
+        wordLab->setWordWrap(false);
+        leftLayout->addWidget(wordLab);
 
-        cardLayout->addLayout(leftLayout);
-        cardLayout->addStretch();
+        QLabel *partLab = new QLabel("词性：" + w["part"]);
+        partLab->setWordWrap(true);
+        leftLayout->addWidget(partLab);
 
+        QLabel *meanLab = new QLabel("释义：" + w["meaning"]);
+        meanLab->setWordWrap(true); // 超长释义自动换行
+        meanLab->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        leftLayout->addWidget(meanLab);
+
+        if (!w["example"].isEmpty()) {
+            QLabel *exLab = new QLabel("例句：" + w["example"]);
+            exLab->setWordWrap(true);
+            exLab->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+            leftLayout->addWidget(exLab);
+        }
+
+        QWidget *leftWrapWidget = new QWidget;
+        leftWrapWidget->setLayout(leftLayout);
+        leftWrapWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        cardLayout->addWidget(leftWrapWidget);
+
+        // ========= 右侧按钮区：固定宽度，永久不会被挤压 =========
         QVBoxLayout *btnRight = new QVBoxLayout;
+        btnRight->setSpacing(8);
+        btnRight->setAlignment(Qt::AlignTop);
+
         QPushButton *starBtn = new QPushButton(starred ? "取消\n着重" : "添加\n着重");
         starBtn->setFixedSize(70,50);
         starBtn->setStyleSheet("background:#3671e9; color:white;");
@@ -157,8 +183,13 @@ void WordListWidget::loadNextPage()
         detailBtn->setFixedSize(70,50);
         detailBtn->setStyleSheet("background:#28a745; color:white;");
         btnRight->addWidget(detailBtn);
-        cardLayout->addLayout(btnRight);
 
+        QWidget *btnWrapWidget = new QWidget;
+        btnWrapWidget->setLayout(btnRight);
+        btnWrapWidget->setFixedWidth(82); // 固定按钮区域总宽度
+        cardLayout->addWidget(btnWrapWidget);
+
+        // 信号绑定
         connect(starBtn, &QPushButton::clicked, this, [=](){ toggleStar(wordId, !starred); });
         connect(detailBtn, &QPushButton::clicked, this, [=](){ showWordFullDetail(wordId); });
 

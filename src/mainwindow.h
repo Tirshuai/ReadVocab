@@ -28,6 +28,12 @@ private slots:
     void onChangeWordbook();
 
 private:
+    QPushButton *btnSetApi;
+
+private slots:
+    void onSetApiKeyClicked();
+
+private:
     QWidget *centralWidget;
     QVBoxLayout *mainLayout;
 
@@ -40,6 +46,7 @@ private:
     QPushButton *btnBook;
     QPushButton *btnData;
     QPushButton *btnReset;
+
 };
 
 #endif // MAINWINDOW_H
