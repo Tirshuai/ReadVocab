@@ -113,9 +113,70 @@ void ScenarioModeWidget::onArticleGenerated(const QString &article)
 {
     QString html = article;
 
+    // ====== 第一层：AI 用 **...** 标记的单词 → 转为可点击链接 ======
+    {
+        QRegularExpression boldRe("\\*\\*(.+?)\\*\\*");
+        QRegularExpressionMatchIterator bit = boldRe.globalMatch(html);
+        QList<QPair<int, int>> boldMatches;  // {start, length} of **...** block
+        QStringList boldTexts;
+        while (bit.hasNext()) {
+            auto m = bit.next();
+            boldMatches.append({m.capturedStart(), m.capturedLength()});
+            boldTexts.append(m.captured(1));  // text inside **
+        }
+        // 倒序替换，避免位置偏移
+        for (int i = boldMatches.size() - 1; i >= 0; --i) {
+            const auto &bm = boldMatches[i];
+            QString markedText = boldTexts[i];
+            // 匹配到 currentWords 中的原形
+            QString baseWord;
+            bool matched = false;
+            for (const QString &cw : currentWords) {
+                if (markedText.compare(cw, Qt::CaseInsensitive) == 0) {
+                    baseWord = cw;
+                    matched = true;
+                    break;
+                }
+                // 处理变形：markedText 以 cw 开头（如 apples/apple, explained/explain）
+                if (markedText.length() >= cw.length() &&
+                    markedText.left(cw.length()).compare(cw, Qt::CaseInsensitive) == 0) {
+                    baseWord = cw;
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) {
+                QString link = QString("<a href='word://%1'>%2</a>").arg(baseWord, markedText);
+                html.replace(bm.first, bm.second, link);
+            } else {
+                // 非生词（如人名 Tom），仅去掉 ** 标记，不生成链接
+                html.replace(bm.first, bm.second, markedText);
+            }
+        }
+    }
+
+    // ====== 第二层：兜底 —— 大小写不敏感匹配 AI 遗漏的单词 ======
     for (const QString &word : currentWords) {
-        QRegularExpression re("\\b" + QRegularExpression::escape(word) + "\\b");
-        html.replace(re, QString("<a href='word://%1'>%1</a>").arg(word));
+        QRegularExpression re("\\b" + QRegularExpression::escape(word) + "\\b",
+                              QRegularExpression::CaseInsensitiveOption);
+        QRegularExpressionMatchIterator it = re.globalMatch(html);
+        QList<QRegularExpressionMatch> matches;
+        while (it.hasNext()) matches.append(it.next());
+
+        // 倒序替换，避免位置偏移
+        for (int i = matches.size() - 1; i >= 0; --i) {
+            const auto &m = matches[i];
+            int pos = m.capturedStart();
+            // 检查是否已在 <a> 标签内
+            int lastOpen = html.lastIndexOf("<a ", pos);
+            int lastClose = html.lastIndexOf("</a>", pos);
+            if (lastOpen != -1 && lastOpen > lastClose)
+                continue;  // 已标记，跳过
+
+            QString matchedText = m.captured();
+            html.replace(pos, matchedText.length(),
+                         QString("<a href='word://%1'>%2</a>").arg(word, matchedText));
+        }
     }
 
     textBrowser->setHtml("<h3>情景短文</h3>" + html);

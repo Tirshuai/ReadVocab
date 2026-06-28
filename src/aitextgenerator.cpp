@@ -15,7 +15,12 @@ AiTextGenerator::AiTextGenerator(QObject *parent)
 void AiTextGenerator::generateStoryArticle(const QStringList &words)
 {
     QString wordStr = words.join(", ");
-    QString prompt = QString(R"(你是英语出题老师，使用下面英文单词：%1，写一篇200词左右日常英文小故事，所有指定单词必须自然出现在正文（需要是常规用法）；只有一篇英语短文，不要多余内容。)")
+    QString prompt = QString(R"(你是英语出题老师。请使用以下英文单词：%1，写一篇200词左右的日常英文小故事。
+
+严格要求：
+1. 所有指定单词必须自然出现在短文中（可以使用常见变形，如复数、过去式、现在分词等）。
+2. 每个指定单词（或其变形）在文中出现时，都必须用双星号括起来标记，例如：**apple**、**apples**、**explained**。
+3. 只输出一篇英语短文，不要任何额外说明、标题或注释。)")
                          .arg(wordStr);
 
     // 标准构造，杜绝函数解析歧义
