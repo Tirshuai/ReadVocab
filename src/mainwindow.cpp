@@ -2,6 +2,8 @@
 #include "learnnewwidget.h"
 #include "wordlistwidget.h"
 #include "wordbookmanager.h"
+#include "reviewwidget.h"
+#include "fastreviewwidget.h"
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QFont>
@@ -11,7 +13,11 @@
 #include <QSqlError>
 #include <QDebug>
 #include <QInputDialog>
-#include <QSettings> // 必须加
+#include <QSettings>
+#include <QDialog>
+#include <QLineEdit>
+#include <QLabel>
+#include <QHBoxLayout>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -23,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
     setCentralWidget(centralWidget);
 
     mainLayout = new QVBoxLayout(centralWidget);
-    mainLayout->setSpacing(16);  // 微调间距，不拥挤
+    mainLayout->setSpacing(16);
     mainLayout->setContentsMargins(40, 25, 40, 25);
 
     QFont btnFont;
@@ -81,7 +87,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     // ✅ 设置API Key 按钮（中等高度，和换词书一档）
-    btnSetApi = new QPushButton("🔑 设置 AI API Key");
+    btnSetApi = new QPushButton("🔑 设置 AI API 接口");
     btnSetApi->setFixedHeight(46);
     btnSetApi->setFont(smallBtnFont);
     btnSetApi->setStyleSheet(R"(
@@ -142,26 +148,74 @@ MainWindow::~MainWindow()
 }
 
 // ==============================
-// ✅ 设置 API Key（保存到文件）
+// 配置弹窗：新增API端点输入框，保存三项配置：密钥/模型/接口地址
 // ==============================
 void MainWindow::onSetApiKeyClicked()
 {
-    bool ok;
-    QString oldKey = QSettings("app_config.ini", QSettings::IniFormat).value("API_KEY").toString();
+    QDialog d(this);
+    d.setWindowTitle("AI 接口配置");
+    d.setFixedSize(520, 320);
+    QVBoxLayout *lay = new QVBoxLayout(&d);
+    lay->setSpacing(12);
+    lay->setContentsMargins(24,24,24,24);
 
-    QString key = QInputDialog::getText(this,
-                                        "智谱清言 glm-4-flash",
-                                        "请输入你的 API Key：",
-                                        QLineEdit::Password,
-                                        oldKey,
-                                        &ok);
+    const QString defaultEndpoint = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+    const QString defaultModel = "glm-4-flash";
 
-    if (!ok || key.trimmed().isEmpty()) return;
-
+    // 读取本地已有配置
     QSettings set("app_config.ini", QSettings::IniFormat);
-    set.setValue("API_KEY", key.trimmed());
+    QString oldKey = set.value("API_KEY").toString();
+    QString oldModel = set.value("MODEL_NAME", defaultModel).toString();
+    QString oldEndpoint = set.value("API_ENDPOINT", defaultEndpoint).toString();
 
-    QMessageBox::information(this, "✅ 成功", "API Key 已保存！\n永久有效，无需重复输入！");
+    QLineEdit *editKey = new QLineEdit(oldKey);
+    editKey->setPlaceholderText("填入平台API Key");
+    editKey->setEchoMode(QLineEdit::Password);
+
+    QLineEdit *editModel = new QLineEdit(oldModel);
+    editModel->setPlaceholderText("模型名称，默认 glm-4-flash");
+
+    QLineEdit *editEndpoint = new QLineEdit(oldEndpoint);
+    editEndpoint->setPlaceholderText("API接口地址，默认智谱官方地址");
+
+    lay->addWidget(new QLabel("API Key："));
+    lay->addWidget(editKey);
+    lay->addWidget(new QLabel("模型名称："));
+    lay->addWidget(editModel);
+    lay->addWidget(new QLabel("API 端点地址："));
+    lay->addWidget(editEndpoint);
+
+    QHBoxLayout *btnLay = new QHBoxLayout;
+    QPushButton *btnOk = new QPushButton("保存");
+    QPushButton *btnCancel = new QPushButton("取消");
+    btnLay->addWidget(btnOk);
+    btnLay->addWidget(btnCancel);
+    lay->addLayout(btnLay);
+
+    connect(btnCancel, &QPushButton::clicked, &d, &QDialog::reject);
+    connect(btnOk, &QPushButton::clicked, &d, &QDialog::accept);
+
+    if(d.exec() != QDialog::Accepted)
+        return;
+
+    QString newKey = editKey->text().trimmed();
+    QString newModel = editModel->text().trimmed();
+    QString newEndpoint = editEndpoint->text().trimmed();
+
+    if(newKey.isEmpty())
+    {
+        QMessageBox::warning(this,"提示","API Key不能为空！");
+        return;
+    }
+    // 空值自动填充默认
+    if(newModel.isEmpty()) newModel = defaultModel;
+    if(newEndpoint.isEmpty()) newEndpoint = defaultEndpoint;
+
+    // 写入三项配置
+    set.setValue("API_KEY", newKey);
+    set.setValue("MODEL_NAME", newModel);
+    set.setValue("API_ENDPOINT", newEndpoint);
+    QMessageBox::information(this, "✅ 成功", "API配置已保存！永久生效");
 }
 
 // ========== 更换词书 ==========
