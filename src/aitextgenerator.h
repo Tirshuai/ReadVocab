@@ -16,8 +16,6 @@ public:
 
 private:
     QNetworkAccessManager *netMgr;
-    const QString API_KEY = "fa360ed847034419913b63245afae965.sLwdJh5k8lngXfQr";
-    const QString URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
 
 signals:
     void articleGenerated(QString article);
