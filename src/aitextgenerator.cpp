@@ -14,9 +14,14 @@ AiTextGenerator::AiTextGenerator(QObject *parent)
 
 void AiTextGenerator::generateStoryArticle(const QStringList &words)
 {
-    // ✅ 从配置文件自动读取 API Key
+    const QString defaultEndpoint = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+    const QString defaultModel = "glm-4-flash";
+
+    // 读取三项配置：密钥、模型、接口地址
     QSettings set("app_config.ini", QSettings::IniFormat);
     QString apiKey = set.value("API_KEY", "").toString().trimmed();
+    QString modelName = set.value("MODEL_NAME", defaultModel).toString().trimmed();
+    QString endpoint = set.value("API_ENDPOINT", defaultEndpoint).toString().trimmed();
 
     if (apiKey.isEmpty()) {
         emit requestError("请先在主界面设置 AI API Key！");
@@ -32,7 +37,8 @@ void AiTextGenerator::generateStoryArticle(const QStringList &words)
 3. 只输出一篇英语短文，不要任何额外说明、标题或注释。)")
                          .arg(wordStr);
 
-    QNetworkRequest req{QUrl(URL)};
+    // 使用配置内自定义端点
+    QNetworkRequest req{QUrl(endpoint)};
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     req.setRawHeader("Authorization", "Bearer " + apiKey.toUtf8());
 
@@ -44,7 +50,7 @@ void AiTextGenerator::generateStoryArticle(const QStringList &words)
     msgArr.append(msgUser);
 
     QJsonObject reqJson;
-    reqJson["model"] = "glm-4-flash";
+    reqJson["model"] = modelName;
     reqJson["messages"] = msgArr;
 
     netMgr->post(req, QJsonDocument(reqJson).toJson(QJsonDocument::Compact));
